@@ -99,6 +99,42 @@ def spectral_function(kpt,prim_kpts,projection,lat,sym):
     spectral[:,1] = spectral[:,1]/float(nkpts)
     return spectral
 
+def cumulative_function(kpt,prim_kpts,projection,lat,sym):
+    """
+    Function to calculate the cumulative spectral distribution function at a
+    given primitive cell k-point.
+    """
+    symkpts = remove_dup(in_ws_cell(apply_sym_ops(sym,[kpt]),lat))
+    nbands = len(projection[0][0,0])
+    spectral = []
+    nkpts = 0
+    # Loop over each supercell calculation
+    for i in range(len(prim_kpts)):
+        # Loop over each primitive-cell kpt in supercell calc.
+        for j in range(len(prim_kpts[i])):
+            # Loop over each kpt symetrically equiv. to k0
+            for k in range(len(symkpts)):
+                # See if kpt prim_kpts[i][j] is equiv to k0
+                if (abs(prim_kpts[i][j] - symkpts[k]) < tol).all():
+                    nkpts += 1
+                #if (prim_kpts[i][j] == symkpts[k]).all():
+                    # If true, add supercell kpoint projection weights to
+                    # spectral function of k0
+                    # Loop over all spins
+                    for s in range(len(projection[i])):
+                        # Loop over all supercell kpoints
+                        for K in range(len(projection[i][s])):
+                            # Loop over all bands
+                            for m in range(len(projection[i][s,K])):
+                                spectral.append([projection[i][s,K,m,j,0],projection[i][s,K,m,j,2]])
+    spectral = np.array(spectral)
+    spectral[:,1] = spectral[:,1]/float(nkpts)
+    spectral = np.sort(spectral,axis=0)
+    cumulative = np.copy(spectral)
+    for i in range(1,len(cumulative)):
+        cumulative[i,1] += cumulative[i-1,1]
+    return spectral,cumulative
+
 # New approach
 
 # 1. Read in POSCAR and vasprun.xml files for generating primtive cell
