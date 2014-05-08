@@ -29,20 +29,36 @@ class VaspRun(object):
         self.atom_types = [ int(i[0].text) for i in self.root.find('atominfo').findall('array')[1].find('set') ]
         self.atom_type_names = [ i[1].text for i in self.root.find('atominfo').findall('array')[1].find('set') ]
 
+    def recip_lat(self,flag="init"):
+        """
+        Read in reciprocal lattice vectors of initial calculation. Lattice
+        vectors are missing a factor of 2*pi.
+        """
+        recip = np.zeros((3,3))
+        if flag == 'init':
+            entry = self.root.findall('structure')[0].find('crystal').findall('varray')[1]
+        else:
+            entry = self.root.findall('structure')[1].find('crystal').findall('varray')[1]
+        for i in range(3):
+            temp = entry[i].text.split()
+            for j in range(3):
+                recip[i,j] = float(temp[j])
+        return recip
+
     def read_dos(self,flag="total"):
         """
         Read in electronic DOS, either total or partial.
         """
-        dos_input = self.root.find('calc').find('dos')
-        fermi_level = float(dos.find('i').text)
+        dos_input = self.root.find('calculation').find('dos')
+        fermi_level = float(dos_input.find('i').text)
         # specific to total dos
         dos_array = dos_input.find(flag)[0][-1][-1]
         energy = np.zeros(len(dos_array))
         dos = np.zeros((len(dos_array),2))
-        for i,line in enumerate(dos_input.find(flag)[0][-1][-1]):
-            energy[i] = float(line.split()[0])
-            dos[i,0] = float(line.split()[1])
-            dos[i,1] = float(line.split()[2])
+        for i,line in enumerate(dos_array):
+            energy[i] = float(line.text.split()[0])
+            dos[i,0] = float(line.text.split()[1])
+            dos[i,1] = float(line.text.split()[2])
         return fermi_level,energy,dos
 
     def read_kpoints(self):
@@ -57,6 +73,13 @@ class VaspRun(object):
             kpts[i,1] = float(kpoint_input[i].text.split()[1])
             kpts[i,2] = float(kpoint_input[i].text.split()[2])
         return kpts
+
+    def read_kpt_centering(self):
+        """
+        Read in the generating scheme of the k-point mesh, either Gamma or
+        Monkhorst-Pack.
+        """
+        return self.root.find('kpoints').find('generation').attrib['param']
 
     def read_kpt_weights(self):
         """
