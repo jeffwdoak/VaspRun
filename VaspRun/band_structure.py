@@ -8,8 +8,11 @@ import numpy as np
 
 vasprun = VaspRun()
 
+recip = vasprun.recip_lat()
 kpoints = vasprun.read_kpoints()
 eigenvals = vasprun.read_eigenval()
+
+kpoints = np.dot(kpoints,recip)  # Convert k-points to cartesian coordinates
 
 # Construct list of band-structure k-point magnitudes
 dk = [0]
