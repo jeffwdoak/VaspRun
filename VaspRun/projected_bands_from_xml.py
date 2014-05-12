@@ -75,7 +75,7 @@ if __name__ == "__main__":
     # Read in vasprun.xml data
     vasprun = VaspRun()
     kpts = vasprun.read_kpoints()
-    eigenvals = vasprun.read_eigenval()
+    eigenvals = vasprun.read_eigenvals()
     projs = vasprun.read_eigenvec_projection()
 
     if len(sys.argv) > 1 and str(sys.argv[1]) == "atom":

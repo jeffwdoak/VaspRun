@@ -9,7 +9,7 @@ from kpt_transform import *
 
 # Read in data from vasprun.xml file
 vasprun = VaspRun(str(sys.argv[1]))
-eigenvals = vasprun.read_eigenval()
+eigenvals = vasprun.read_eigenvals()
 kpoints = vasprun.read_kpoints()
 fermi,energy,dos = vasprun.read_dos()
 recip = vasprun.recip_lat()  # Missing factor of 2*pi. Not sure if that matters.

@@ -61,6 +61,18 @@ class VaspRun(object):
             dos[i,1] = float(line.text.split()[2])
         return fermi_level,energy,dos
 
+    def read_kpt_gen(self):
+        """
+        Read in data used to generate k-point mesh/path.
+        """
+        gen = self.root.find('kpoints').find('generation').findall('v')
+        nkpts = int(self.root.find('kpoints').find('generation').find('i').text)
+        kpath = np.zeros([len(gen),3])
+        for i in range(len(gen)):
+            for j in range(3):
+                kpath[i,j] = float(gen[i].text.split()[j])
+        return kpath,nkpts
+
     def read_kpoints(self):
         """
         Read in k-points used in calculation.
@@ -134,7 +146,7 @@ class VaspRun(object):
                 kpts[i,j] = float(kpt_list[i].text.split()[j])
         return kpts
 
-    def read_eigenval(self):
+    def read_eigenvals(self):
         """
         Read in electron eigenvalues.
         Dimensions of returned array are:
